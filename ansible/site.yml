@@ -23,3 +23,25 @@
         name: firewalld
         state: started
         enabled: true
+
+    - name: Create a service account for the app
+      ansible.builtin.user:
+        name: appsvc
+        system: true
+        shell: /sbin/nologin
+        create_home: false
+
+    - name: Harden SSH (no root login, keys only)
+      ansible.builtin.copy:
+        dest: /etc/ssh/sshd_config.d/00-hardening.conf
+        content: |
+          PermitRootLogin no
+          PasswordAuthentication no
+        mode: "0600"
+      notify: Restart sshd
+
+  handlers:
+    - name: Restart sshd
+      ansible.builtin.service:
+        name: sshd
+        state: restarted
